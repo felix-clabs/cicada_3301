@@ -1,21 +1,21 @@
-# Informe de Progreso - Fase 3: Ataque sobre la Página 17
+# Informe de Progreso - Fase 3: Ataque Focalizado P17 (Modulo 18)
 
-## Análisis Estadístico de la Página 17
-*   **IC Base:** 1.0330 (Cifrado polialfabético confirmado).
-*   **Análisis de Kasiski / Friedman:**
-    *   Longitud 18: IC Promedio **1.4451** (Señal más fuerte)
-    *   Longitud 16: IC Promedio 1.3435
-    *   Longitud 20: IC Promedio 1.3299
+## Estado de la Página 17
+*   **Longitud de Clave Identificada:** 18 (IC Promedio ~1.44).
+*   **Análisis Columnar (Routine 1):**
+    *   Se descompuso la página en 18 columnas y se aplicó análisis de Chi-cuadrado para cada una.
+    *   La mejor clave encontrada eleva el IC global a **1.2971**, pero el texto aún no es legible.
+    *   *Hipótesis:* La distribución del inglés en el Liber Primus varía significativamente entre secciones (Koans vs. Filosofía).
 
-## Resultados de las Rutinas de Ataque
-1.  **Ataque de Diccionario:** No se detectaron coincidencias legibles usando combinaciones de palabras clave de Cicada (DIVINITY, PILGRIM, etc.) para longitudes 16, 18 y 20.
-2.  **Ataque PRNG:** Las semillas de la página 16 (434, 1311...) no produjeron texto en claro mediante generadores LCG o MT estándar.
+## Nuevas Rutinas Implementadas
+1.  **Chi-Square Columnar:** Implementado en `phase3_attack_p17.py`.
+2.  **Cyclic Prime-Shift (Len 18):** Se probaron los primeros 18 primos como clave cíclica (con y sin offset 28).
+3.  **External Hook:** Función preparada para integrar flujos de datos externos (audio/PRNG).
 
-## Validaciones Exitosas
-*   **Página 71:** Confirmada y descifrada usando **Prime Shift (offset 28)**.
-*   **Página 72:** Confirmada como texto en claro (The Parable).
+## Validaciones y Hallazgos Secundarios
+*   **Página 20:** Presenta una señal fortísima en **longitud 28** (IC 1.5363). Dado que el offset de la P71 fue 28, esta página es un candidato prioritario para un ataque Prime-shift similar.
+*   **Página 71:** Confirmada como el "punto de anclaje" metodológico (Prime Shift + Offset 28).
 
-## Herramientas en `tool/python/`
-*   `rune_tools.py`: Librería base para Gematria Primus e IC.
-*   `vigenere_brute.py`: Analizador de longitud de clave.
-*   `phase3_attack_p17.py`: Script de ataque automatizado para la página 17.
+## Próximos Pasos
+*   Refinar la distribución de frecuencias para la Routine 1 usando sub-segmentos de texto (ej. solo el texto de 'The Loss of Divinity').
+*   Ejecutar Routine 1 en la Página 20 usando longitud 28.

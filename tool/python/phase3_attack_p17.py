@@ -1,68 +1,122 @@
+
 import rune_tools as rt
+import itertools
 import random
 import re
-import itertools
+from collections import Counter
 
-# Numbers from Page 16
-SEEDS = [434, 1311, 312, 278, 966, 204, 812, 934, 280, 1071, 626, 620, 809, 620, 626, 1071, 280, 934, 812, 204, 966, 278, 312, 1311, 434]
+# derived from solved pages 0-14 and 72
+ENGLISH_RUNE_FREQ = [2.78, 4.33, 2.52, 3.58, 4.39, 4.27, 1.04, 5.58, 2.68, 2.82, 3.98, 2.08, 2.48, 6.36, 1.25, 5.30, 4.69, 1.91, 6.11, 3.32, 2.48, 2.58, 1.81, 3.66, 4.61, 2.48, 2.52, 3.84, 4.55]
 
-# High priority Cicada Lexicon for key generation
-KEY_LEXICON = ["DIVINITY", "PILGRIM", "WISDOM", "TRUTH", "CHAPTER", "WELCOME", "BELIEVE", "NOTHING", "KNOWLEDGE", "SACRED", "DECEPTION", "PRESERVATION", "CONSUMPTION", "ADHERENCE", "INSTAR", "PARABLE"]
+def chi_square(observed, expected):
+    """Calculates Chi-square statistic."""
+    return sum((o - e)**2 / e for o, e in zip(observed, expected))
 
-def latin_to_indices(word):
-    indices = []
-    for char in word:
-        for r_char, latin, val in rt.GEMATRIA_PRIMUS:
-            if char in latin.split('/'):
-                indices.append(rt.RUNE_TO_INDEX[r_char])
-                break
-    return indices
+def get_observed_freq(runes_list):
+    n = len(runes_list)
+    counts = Counter(runes_list)
+    return [(counts[rt.INDEX_TO_RUNE[i]] / n) * 100 for i in range(29)]
 
-def lcg(seed, n):
-    a = 1103515245
-    c = 12345
-    m = 2**31
-    res = []
-    curr = seed
-    for _ in range(n):
-        curr = (a * curr + c) % m
-        res.append(curr % 29)
-    return res
+def check_success(decrypted_text, method_name):
+    ic = rt.calculate_ic(decrypted_text)
+    latin = rt.translate_to_latin(decrypted_text)
 
-def check_success(text):
-    ic = rt.calculate_ic(text)
-    if ic > 1.45: return True, f"IC: {ic:.4f}"
-    return False, ""
+    # Strictly filter results
+    if ic > 1.50:
+        print(f"!!! [SUCCESS BY IC] !!! Method: {method_name} | IC: {ic:.4f}")
+        print(f"  {latin[:300]}")
+        return True
 
-def run_attacks(ciphertext, name_prefix):
-    runes = rt.get_runes_only(ciphertext)
-    n = len(runes)
-    # PRNG Attack
-    for seed in SEEDS:
-        seq = lcg(seed, n)
-        dec = "".join([rt.INDEX_TO_RUNE[(rt.RUNE_TO_INDEX[r] - s) % 29] for r, s in zip(runes, seq)])
-        success, msg = check_success(dec)
-        if success:
-            print(f"MATCH: {name_prefix} PRNG LCG {seed} | {msg}")
-            return True
-    # Dictionary Attack
-    for length in [16, 18, 20]:
-        candidates = [w for w in KEY_LEXICON if len(w) == length]
-        for w1, w2 in itertools.product(KEY_LEXICON, repeat=2):
-            if len(w1) + len(w2) == length: candidates.append(w1 + w2)
-        for k_latin in set(candidates):
-            k_indices = latin_to_indices(k_latin)
-            dec = rt.vigenere_decrypt(ciphertext, k_indices)
-            success, msg = check_success(dec)
-            if success:
-                print(f"MATCH: {name_prefix} Dictionary {k_latin} | {msg}")
-                return True
+    # Check for legible words sequence
+    # Heuristic: 3+ words from lexicon appearing
+    hits = 0
+    for w in [" THE ", " AND ", " WITH ", " FROM ", " YOUR ", " SHALL "]:
+        if w in latin: hits += 1
+    if hits >= 3:
+        print(f"!!! [SUCCESS BY LEXICON] !!! Method: {method_name} | IC: {ic:.4f}")
+        print(f"  {latin[:300]}")
+        return True
+
     return False
 
+def routine_1_columnar_analysis(ciphertext_runes):
+    """Routine 1: Deconstruction by columns and frequency analysis."""
+    n_cols = 18
+    best_shifts = []
+
+    for c in range(n_cols):
+        column = ciphertext_runes[c::n_cols]
+        best_col_shift = 0
+        min_chi = float('inf')
+
+        for s in range(29):
+            # Apply shift s to column
+            shifted_col = []
+            for r in column:
+                p_idx = (rt.RUNE_TO_INDEX[r] - s) % 29
+                shifted_col.append(rt.INDEX_TO_RUNE[p_idx])
+
+            obs = get_observed_freq(shifted_col)
+            # Avoid division by zero in chi-square if expected freq was 0 (shouldn't be in our list)
+            chi = chi_square(obs, ENGLISH_RUNE_FREQ)
+            if chi < min_chi:
+                min_chi = chi
+                best_col_shift = s
+
+        best_shifts.append(best_col_shift)
+
+    # Apply Master Key
+    dec_text = rt.vigenere_decrypt("".join(ciphertext_runes), best_shifts)
+    ic = rt.calculate_ic(dec_text)
+    print(f"Routine 1 (Columnar Chi-Sq) | Best Key IC: {ic:.4f}")
+    check_success(dec_text, f"Routine 1 (Columnar Chi-Sq) | Key: {best_shifts}")
+    return best_shifts
+
+def routine_2_cyclic_prime(ciphertext_runes):
+    """Routine 2: Prime-Shift Cyclic Modulo 18."""
+    # First 18 primes
+    primes_18 = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61]
+
+    # Variant A: Direct prime shifts
+    dec_a = rt.vigenere_decrypt("".join(ciphertext_runes), [p % 29 for p in primes_18])
+    check_success(dec_a, "Routine 2A (Cyclic Prime)")
+
+    # Variant B: Prime shifts with offset 28 (Page 71 style)
+    dec_b = rt.vigenere_decrypt("".join(ciphertext_runes), [(p + 28) % 29 for p in primes_18])
+    check_success(dec_b, "Routine 2B (Cyclic Prime + 28)")
+
+def apply_external_key_18(ciphertext_runes, key_array):
+    """Routine 3: External Key Hook."""
+    if len(key_array) != 18:
+        print("Error: External key must be exactly 18 integers.")
+        return
+    dec = rt.vigenere_decrypt("".join(ciphertext_runes), [k % 29 for k in key_array])
+    ic = rt.calculate_ic(dec)
+    print(f"External Key Test | IC: {ic:.4f}")
+    check_success(dec, f"External Key {key_array}")
+
 if __name__ == "__main__":
-    with open("liber_primus/markdown/17.md", "r") as f:
+    import os
+    target_path = "liber_primus/markdown/17.md"
+    if not os.path.exists(target_path):
+        print(f"File {target_path} not found.")
+        sys.exit(1)
+
+    with open(target_path, "r") as f:
         content = f.read()
-    runes = "".join(rt.get_runes_only(content))
-    for name, ct in [("Normal", runes), ("Atbash", rt.atbash(runes))]:
-        print(f"Scanning {name}...")
-        run_attacks(ct, name)
+
+    runes = rt.get_runes_only(content)
+    atb_runes = rt.get_runes_only(rt.atbash("".join(runes)))
+
+    targets = [("Normal", runes), ("Atbash", atb_runes)]
+
+    for name, ct_runes in targets:
+        print(f"--- FOCUSED ATTACK (LEN 18) ON {name} P17 ---")
+
+        # Routine 1
+        routine_1_columnar_analysis(ct_runes)
+
+        # Routine 2
+        routine_2_cyclic_prime(ct_runes)
+
+    print("Attack cycle complete.")
