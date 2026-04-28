@@ -1,20 +1,21 @@
-# Informe de Progreso - Fase 11: Análisis Profundo de Audio y Regex en P20
+# Informe de Progreso - Fase 13: Desbloqueo de Transposición 2D en P20
 
-## Extracción de Metadatos de Audio
-Se han implementado extractores para capas más profundas de esteganografía rítmica:
-1.  **MIDI Delta Times:** Genera un array de permutación basado en los intervalos de ticks entre eventos Note-on.
-    *   Array: [0, 18, 1, 19, 26, 2, 9, 10, 25, 27, 11, 24, 3, 4, 20, 7, 12, 21, 13, 22, 5, 16, 23, 17, 6, 8, 14, 15]
-2.  **Audio Byte Rank (WAV):** Basado en el orden de rango de los primeros 28 bytes de datos de `steghide.wav`.
-    *   Array: [0, 1, 2, 3, 27, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
+## Análisis de Matriz Columnar
+*   Se implementó el descifrador de transposición columnar 2D manejando correctamente las columnas "largas" y "cortas" para un ancho de 28.
+*   **Rutina de Ruteo MIDI:** Se aplicó el array de Delta Times [0, 18, 1, 19...] bajo múltiples interpretaciones geométricas:
+    1.  Carga Vertical -> Lectura Horizontal.
+    2.  Carga Horizontal -> Lectura Vertical.
+    3.  Uso del array como Mapa de Posición Original vs. Mapa de Destino.
 
-## Resultados de Ruteo Dinámico
-*   La aplicación de los nuevos arrays de audio al Bloque 0 de la Página 20 altera significativamente la disposición de las 9 vocales 'E', pero no ha generado por sí sola la palabra **EMERGENCE** en posiciones lineales.
-*   **Observación:** La falta de ciertos caracteres (ej. 'U' en el Bloque 0) sugiere que algunas palabras clave pueden estar divididas entre bloques o que la sustitución base requiere un ajuste fino.
+## Resultados de la Fase 13
+*   **Alineación Estadística:** Todas las variantes mantienen el IC ideal de 1.7.
+*   **Análisis Léxico:** Ninguna de las combinaciones automáticas con los arrays de audio actuales ha revelado oraciones coherentes en inglés rúnico.
+*   **Conclusión:** La transposición de la Página 20 no es una simple permutación de columnas de ancho 28 basada directamente en los Delta Times MIDI.
 
-## Motor de Anclaje Regex
-Se ha preparado la infraestructura para búsquedas guiadas por patrones. El Bloque 0 posee la runa G (ᚷ) y abundantes E's, lo que mantiene viva la hipótesis de la palabra clave oculta.
+## Hipótesis Evolucionada
+Dada la ausencia de resultados con permutaciones lineales, es probable que:
+1.  La matriz de transposición sea **cuadrada** (ej. 16x16 o similar) y las 263 runas contengan caracteres nulos o de relleno.
+2.  La clave de transposición sea una **Espiral** o un patrón de **Ruta de Caballo** sobre una rejilla de ancho 28.
 
-## Herramientas Consolidadas
-*   `csv_rank_extractor.py`: Ahora soporta análisis de Delta Times.
-*   `lsb_array_extractor.py`: Extracción de secuencias binarias de audio.
-*   `regex_anchor_attack.py`: Validador de patrones de esqueleto.
+## Herramientas Actualizadas
+*   `p20_columnar_2d.py`: Motor de transposición bidimensional con soporte para arrays externos y variantes de carga/lectura.
