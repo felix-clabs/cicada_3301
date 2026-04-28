@@ -1,18 +1,20 @@
-# Informe de Progreso - Fase 10: Ruteo de Audio a Transposición en P20
+# Informe de Progreso - Fase 11: Análisis Profundo de Audio y Regex en P20
 
-## Extracción de Claves de Audio
-Se han desarrollado e implementado dos rutinas de extracción de datos binarios para generar el array de permutación de 28 posiciones:
-1.  **Audio Transients (Time-Domain):** Basado en los intervalos entre los primeros 28 picos de amplitud de `steghide.wav`.
-    *   Array: [27, 0, 12, 24, 1, 13, 5, 20, 2, 17, 23, 3, 18, 6, 25, 14, 10, 26, 15, 11, 21, 7, 16, 8, 22, 4, 19, 9]
-2.  **MIDI Note Order (Event-Domain):** Basado en el rango de los valores de las primeras 28 notas del archivo `song.csv`.
-    *   Array: [15, 9, 3, 0, 19, 20, 21, 7, 1, 22, 10, 26, 2, 16, 11, 27, 4, 23, 17, 12, 18, 8, 24, 5, 13, 14, 25, 6]
+## Extracción de Metadatos de Audio
+Se han implementado extractores para capas más profundas de esteganografía rítmica:
+1.  **MIDI Delta Times:** Genera un array de permutación basado en los intervalos de ticks entre eventos Note-on.
+    *   Array: [0, 18, 1, 19, 26, 2, 9, 10, 25, 27, 11, 24, 3, 4, 20, 7, 12, 21, 13, 22, 5, 16, 23, 17, 6, 8, 14, 15]
+2.  **Audio Byte Rank (WAV):** Basado en el orden de rango de los primeros 28 bytes de datos de `steghide.wav`.
+    *   Array: [0, 1, 2, 3, 27, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
 
-## Resultados de las Pruebas de Permutación
-*   Se aplicaron los arrays resultantes al Bloque 0 de la Página 20.
-*   **Observación:** Aunque las permutaciones alteran la estructura fonética, no se ha logrado la alineación inmediata de palabras clave como "EMERGENCE" o "PILGRIM".
-*   **Conclusión:** La estructura de la transposición es intra-bloque (28), pero el array de control podría estar en una propiedad de audio diferente (ej. fase, frecuencias específicas FFT) o en un desplazamiento de bit específico de los archivos MP3.
+## Resultados de Ruteo Dinámico
+*   La aplicación de los nuevos arrays de audio al Bloque 0 de la Página 20 altera significativamente la disposición de las 9 vocales 'E', pero no ha generado por sí sola la palabra **EMERGENCE** en posiciones lineales.
+*   **Observación:** La falta de ciertos caracteres (ej. 'U' en el Bloque 0) sugiere que algunas palabras clave pueden estar divididas entre bloques o que la sustitución base requiere un ajuste fino.
 
-## Herramientas de Integración
-*   `audio_rank_extractor.py`: Analizador de formas de onda (.wav).
-*   `csv_rank_extractor.py`: Analizador de eventos MIDI (.csv).
-*   `audio_permutation_attack.py`: Orquestador de ataques de ruteo dinámico.
+## Motor de Anclaje Regex
+Se ha preparado la infraestructura para búsquedas guiadas por patrones. El Bloque 0 posee la runa G (ᚷ) y abundantes E's, lo que mantiene viva la hipótesis de la palabra clave oculta.
+
+## Herramientas Consolidadas
+*   `csv_rank_extractor.py`: Ahora soporta análisis de Delta Times.
+*   `lsb_array_extractor.py`: Extracción de secuencias binarias de audio.
+*   `regex_anchor_attack.py`: Validador de patrones de esqueleto.
