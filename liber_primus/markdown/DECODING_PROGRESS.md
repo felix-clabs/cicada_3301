@@ -21,3 +21,34 @@ La Página 20 es un cifrado polialfabético de 28 alfabetos. La estructura del c
 *   `affine_attack.py`: Motor de búsqueda de parámetros afines.
 *   `columnar_refined.py`: Analizador de columnas con multi-perfil estadístico.
 *   `primitive_root_attack.py`: Generador de secuencias basadas en raíces primitivas mod 29.
+
+## Análisis Matemático de la Página 20 (Fase 5)
+*   **Ataque de Raíces Primitivas:** Se generaron y probaron secuencias exponenciales (^i \pmod{29}$) para las 12 raíces primitivas de 29.
+    *   No se detectaron aumentos significativos del IC (>1.55) bajo este modelo de clave cíclica pura.
+    *   Las distancias Chi-cuadrado respecto a los perfiles de  y  se mantuvieron en niveles de ruido.
+*   **Cifrado Afín Progresivo:** Se exploró el modelo  = a^{-1}(c - (b + i \cdot step)) \pmod{29}$. No se encontraron coincidencias.
+*   **Cruces Inter-páginas:** Se utilizaron los números de la Página 5 como clave Vigenère sobre la P20 sin éxito.
+
+## Conclusión Técnica (P20)
+Aunque la señal de longitud 28 es robusta, la clave no sigue una progresión aritmética o exponencial simple basada en raíces primitivas. La clave de 28 posiciones es probablemente:
+1. Una secuencia de una página aún no resuelta o un dato externo.
+2. Un PRNG más complejo (ej. BBS o un LCG con parámetros desconocidos).
+3. Una permutación del alfabeto rúnico específica.
+
+## Estado de las Herramientas
+*   `primitive_root_v2.py`: Motor de ataque exponencial modular.
+*   `affine_progressive.py`: Buscador de transformaciones lineales dinámicas.
+
+## Análisis Matemático de la Página 20 (Fase 5)
+*   **Ataque de Raíces Primitivas:** Se generaron y probaron secuencias exponenciales ($g^i \pmod{29}$) para las 12 raíces primitivas de 29.
+    *   No se detectaron aumentos significativos del IC (>1.55) bajo este modelo de clave cíclica pura.
+    *   Las distancias Chi-cuadrado respecto a los perfiles de PHILOSOPHY y KOAN se mantuvieron en niveles de ruido.
+*   **Cifrado Afín Progresivo:** Se exploró el modelo $p = a^{-1}(c - (b + i \cdot step)) \pmod{29}$. No se encontraron coincidencias.
+*   **Cruces Inter-páginas:** Se utilizaron los números de la Página 5 como clave Vigenère sobre la P20 sin éxito.
+
+## Conclusión Técnica (P20)
+Aunque la señal de longitud 28 es robusta, la clave no sigue una progresión aritmética o exponencial simple basada en raíces primitivas. La clave de 28 posiciones es probablemente una secuencia de una página aún no resuelta o un dato externo.
+
+## Estado de las Herramientas
+*   `primitive_root_v2.py`: Motor de ataque exponencial modular.
+*   `affine_progressive.py`: Buscador de transformaciones lineales dinámicas.
