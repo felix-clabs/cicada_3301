@@ -52,3 +52,12 @@ Aunque la señal de longitud 28 es robusta, la clave no sigue una progresión ar
 ## Estado de las Herramientas
 *   `primitive_root_v2.py`: Motor de ataque exponencial modular.
 *   `affine_progressive.py`: Buscador de transformaciones lineales dinámicas.
+
+## Análisis Heurístico de la Página 20 (Fase 6)
+*   **Algoritmo Genético (Hill Climbing):** Se implementó un motor de evolución de claves de 28 posiciones optimizando el IC y la distancia Chi-cuadrado contra perfiles nativos.
+*   **Convergencia:** El algoritmo converge rápidamente hacia un IC de **1.6994** (casi idéntico al inglés estándar).
+*   **Resultados:** Aunque el IC es ideal, el texto resultante sigue careciendo de estructura semántica clara (ej: "C/K E J F A L E IA/IO T I W I...").
+*   **Interpretación:** Esto sugiere que la Página 20 podría tener una capa adicional de transposición de filas/columnas o que la clave no es Vigenère simple, sino que afecta a las runas de forma no lineal.
+
+## Estado de las Herramientas
+*   `genetic_solver_p20.py`: Motor heurístico de alto rendimiento para búsqueda de claves de longitud 28.
