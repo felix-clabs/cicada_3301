@@ -1,21 +1,30 @@
-# Informe de Progreso - Fase 3: Ataque Focalizado P17 (Modulo 18)
+# Informe de Progreso - Análisis Criptográfico LP2
 
-## Estado de la Página 17
-*   **Longitud de Clave Identificada:** 18 (IC Promedio ~1.44).
-*   **Análisis Columnar (Routine 1):**
-    *   Se descompuso la página en 18 columnas y se aplicó análisis de Chi-cuadrado para cada una.
-    *   La mejor clave encontrada eleva el IC global a **1.2971**, pero el texto aún no es legible.
-    *   *Hipótesis:* La distribución del inglés en el Liber Primus varía significativamente entre secciones (Koans vs. Filosofía).
+## Página 71: RESUELTA
+*   **Método:** Prime Shift (sustracción) con un offset constante de 28.
+*   **Texto:** "AN END WITHIN THE DEEP WEB THERE EXISTS A PAGE THAT HAS TO IT IS THE DUTY OF..."
+*   **Significado:** Valida el uso de desplazamientos matemáticos dinámicos y el número 28 como constante clave.
 
-## Nuevas Rutinas Implementadas
-1.  **Chi-Square Columnar:** Implementado en `phase3_attack_p17.py`.
-2.  **Cyclic Prime-Shift (Len 18):** Se probaron los primeros 18 primos como clave cíclica (con y sin offset 28).
-3.  **External Hook:** Función preparada para integrar flujos de datos externos (audio/PRNG).
+## Página 20: ALTA PRIORIDAD
+*   **Anomalía:** Señal de IC masiva en longitud **28** (IC 1.5363).
+*   **Estado:** El análisis columnar (Chi-Square) eleva el IC a 1.4368. Se ha verificado que no es un Prime Shift simple.
+*   **Hipótesis:** Cifrado polialfabético con ciclo de 28 posiciones. Dada la coincidencia con el offset de la P71, la clave de 28 podría estar relacionada con la estructura del alfabeto (29 runas - 1).
 
-## Validaciones y Hallazgos Secundarios
-*   **Página 20:** Presenta una señal fortísima en **longitud 28** (IC 1.5363). Dado que el offset de la P71 fue 28, esta página es un candidato prioritario para un ataque Prime-shift similar.
-*   **Página 71:** Confirmada como el "punto de anclaje" metodológico (Prime Shift + Offset 28).
+## Página 17: Cifrado Modulo 18
+*   **Estado:** Longitud de clave 18 (IC 1.4451).
+*   **Pruebas Realizadas:**
+    *   Autoclave (Texto claro y Cifrado): Sin resultados.
+    *   Análisis Columnar: IC mejorado a 1.2971.
+    *   Ataque de Diccionario: Las palabras clave de Cicada no producen texto legible.
+*   **Conclusión:** Requiere una clave numérica de 18 dígitos no derivada del léxico estándar.
 
-## Próximos Pasos
-*   Refinar la distribución de frecuencias para la Routine 1 usando sub-segmentos de texto (ej. solo el texto de 'The Loss of Divinity').
-*   Ejecutar Routine 1 en la Página 20 usando longitud 28.
+## Distribución de Frecuencias Refinada
+Se han generado perfiles de frecuencia para tres estilos detectados:
+1.  **Filosofía:** Basado en páginas 0-13.
+2.  **Koans:** Basado en páginas 14-15.
+3.  **Parábolas:** Basado en la página 72.
+Estos perfiles están integrados en las herramientas de `tool/python/`.
+
+## Herramientas Actualizadas
+*   `phase3_attack_p17.py`: Ahora incluye rutinas de Chi-Square y Prime-Shift cíclico.
+*   `vigenere_brute.py`: Analizador universal de longitud de clave e IC.
