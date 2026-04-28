@@ -7,3 +7,5 @@ iso/*
 # Service
 other/service/src/files
 other/service/src/log.txt
+__pycache__/
+*.pyc
