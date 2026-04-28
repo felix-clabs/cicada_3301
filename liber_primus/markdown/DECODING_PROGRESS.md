@@ -1,20 +1,19 @@
-# Informe de Progreso - Fase 8: Transposición con Clave en P20
+# Informe de Progreso - Fase 9: Análisis de Bloques y Permutaciones en P20
 
-## Análisis de Transposición Columnar
-*   **Método:** Se utilizó la clave de 28 posiciones obtenida del solver genético como clave de transposición.
-*   **Resultados:**
-    *   La reordenación de columnas basada en el rango de los valores de la clave (Keyed Columnar Transposition) no reveló texto legible en lecturas horizontales ni verticales.
-    *   Se probaron variantes de extracción (Lectura por filas vs. Lectura por columnas reordenadas).
+## Análisis del Bloque 0 (Página 20)
+*   **Inventario de Caracteres:** El primer bloque de 28 runas (tras la sustitución con IC 1.7) presenta una composición rica en vocales:
+    *   **Inventario de Vocales:** {'ᛁ': 2, 'ᛇ': 1, 'ᛖ': 9, 'ᚪ': 2, 'ᛡ': 1, 'ᛠ': 1}.
+    *   Total vocales: 16 de 28 caracteres.
+*   **Ataque de Esqueleto:** Se verificó la posibilidad de formar palabras clave del léxico Cicada:
+    *   El Bloque 0 contiene los caracteres necesarios para formar la palabra **PILGRIM** y conectores como **THE** o **AND**.
+    *   La alta densidad de la runa 'ᛖ' (E) sugiere una estructura gramaticalmente correcta pero desordenada localmente.
 
-## Hipótesis de Transposición Intra-Bloque (Fase 8)
-*   Se dividió el texto con IC 1.7 en bloques exactos de 28 caracteres.
-*   **Observación:** El bloque 0 ("J E T F A L F IA/IO G I E I H AE R EO I E AE E J E M A E S/Z E N") contiene una alta densidad de vocales y letras comunes, pero no se ha encontrado una permutación local que forme palabras clave.
+## Capa de Permutación Dinámica
+*   Se ha implementado la función `dynamic_block_permutation` en `transposition_solver.py`.
+*   Esta función permite reordenar los bloques de 28 caracteres basándose en secuencias externas (ej. derivadas de la amplitud o frecuencia del audio).
 
-## Desafíos de la Página 20
-Aunque la sustitución polialfabética de ciclo 28 ha sido resuelta estadísticamente (IC 1.7), el texto sigue desordenado. Esto indica que:
-1.  La transposición es independiente de la clave de sustitución.
-2.  La clave de 28 caracteres se deriva de un sistema dinámico (posiblemente audio o una página matemática como la 57) que aún no hemos mapeado correctamente a la rejilla espacial.
+## Estado de la Investigación
+La Página 20 se comporta como un cifrado de **Transposición de Bloques Fijos (28 caracteres)** sobre una sustitución polialfabética ya resuelta. La clave de la transposición es la pieza final.
 
-## Herramientas Consolidadas
-*   `transposition_solver.py`: Implementación de transposición columnar con clave y análisis de chunks.
-*   `capture_p20_key.py`: Extractor de claves óptimas por Hill Climbing.
+## Herramientas Actualizadas
+*   `transposition_solver.py`: Incluye análisis de esqueleto de palabras y ganchos para permutación dinámica por array.

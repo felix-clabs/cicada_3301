@@ -1,75 +1,58 @@
 import rune_tools as rt
 import re
+from collections import Counter
 
-def get_lexicon():
-    with open("tool/python/cicada_lexicon.txt", "r") as f:
-        return [line.strip() for line in f if len(line.strip()) >= 4]
+# Core Lexicon for skeleton attack
+MAIN_WORDS = ["PILGRIM", "DIVINITY", "CONSUMPTION", "PRESERVATION", "INSTRUCTION", "ILLUSION"]
 
-LEXICON = get_lexicon()
+def get_word_chars(latin_word):
+    # Map latin letters to rune indices (approximate)
+    chars = []
+    for char in latin_word:
+        for r, l, v in rt.GEMATRIA_PRIMUS:
+            if char in l.split('/'):
+                chars.append(rt.RUNE_TO_INDEX[r])
+                break
+    return chars
 
-def check_english(text):
-    latin = rt.translate_to_latin(text)
-    simple_latin = re.sub(r'\[([^|\]]+)\|[^\]]+\]', r'\1', latin)
-    clean_latin = "".join([c if c.isalpha() else " " for c in simple_latin]).upper()
-    words_found = clean_latin.split()
-    hits = [w for w in words_found if w in LEXICON]
-    return hits
+def routine_1_word_skeleton(text_block):
+    print("--- ROUTINE 1: WORD SKELETON ATTACK (BLOCK 0) ---")
+    runes = rt.get_runes_only(text_block)
+    block_indices = [rt.RUNE_TO_INDEX[r] for r in runes]
+    b_counts = Counter(block_indices)
 
-def routine_1_keyed_transposition(text, key_indices):
-    print("--- ROUTINE 1: KEYED COLUMNAR TRANSPOSITION (COL EXTRACTION) ---")
-    n_cols = len(key_indices)
-    indexed_key = list(enumerate(key_indices))
-    sorted_key = sorted(indexed_key, key=lambda x: x[1])
+    print(f"Block chars: {rt.translate_to_latin(text_block)}")
 
-    rows = (len(text) + n_cols - 1) // n_cols
-    grid = [['' for _ in range(n_cols)] for _ in range(rows)]
-    for i, char in enumerate(text):
-        grid[i // n_cols][i % n_cols] = char
+    for word in MAIN_WORDS:
+        w_indices = get_word_chars(word)
+        w_counts = Counter(w_indices)
+        possible = True
+        for idx, count in w_counts.items():
+            if b_counts[idx] < count:
+                possible = False
+                break
+        if possible:
+            print(f"Word '{word}' can be formed with characters from this block.")
 
-    # Read columns in order of sorted key
-    dec_chars = []
-    for original_idx, value in sorted_key:
-        for r in range(rows):
-            if grid[r][original_idx]:
-                dec_chars.append(grid[r][original_idx])
+    # Check for THE, AND
+    for word in ["THE", "AND", "YOUR", "FOR"]:
+        w_indices = get_word_chars(word)
+        if all(b_counts[idx] >= count for idx, count in Counter(w_indices).items()):
+             print(f"Word '{word}' can also be formed.")
 
-    dec = "".join(dec_chars)
-    hits = check_english(dec)
-    if len(hits) >= 3:
-        print(f"!!! Success !!! Hits: {hits}")
-        print(rt.translate_to_latin(dec))
-    else:
-        print(f"No match. Sample hits: {hits[:5]}")
-
-if __name__ == "__main__":
-    with open("tool/python/p20_key_output.txt", "r") as f:
-        lines = f.readlines()
-    key = [int(x) for x in lines[0].strip().split(",")]
-    text = lines[1].strip()
-    routine_1_keyed_transposition(text, key)
-
-def routine_2_intra_block(text):
-    print("\n--- ROUTINE 2: INTRA-BLOCK ANAGRAMS (LEN 28) ---")
-    # Divide into blocks of 28
-    block_size = 28
-    blocks = [text[i:i+block_size] for i in range(0, len(text), block_size)]
-
-    for i, block in enumerate(blocks):
-        # We can't brute force 28!
-        # But we can check if it contains runes of common words
-        latin = rt.translate_to_latin(block)
-        # Count runes matching "PILGRIM", "DIVINITY", etc.
-        hits = 0
-        for word in ["THE", "AND", "WITH", "SHALL", "YOUR", "THIS", "WILL"]:
-             # Simple heuristic: if enough letters of the word are present
-             pass
-        if i == 0:
-             print(f"Block 0: {rt.translate_to_latin(block)}")
+def dynamic_block_permutation(text_block, index_array):
+    if len(text_block) != len(index_array):
+        return None
+    runes = list(text_block)
+    permuted = [''] * len(runes)
+    for i, idx in enumerate(index_array):
+        permuted[idx] = runes[i]
+    return "".join(permuted)
 
 if __name__ == "__main__":
-    with open("tool/python/p20_key_output.txt", "r") as f:
-        lines = f.readlines()
-    key = [int(x) for x in lines[0].strip().split(",")]
-    text = lines[1].strip()
-    routine_1_keyed_transposition(text, key)
-    routine_2_intra_block(text)
+    with open("tool/python/best_p20_runes.txt", "r") as f:
+        text = f.read().strip()
+
+    # Block 0 (first 28 chars)
+    block0 = text[:28]
+    routine_1_word_skeleton(block0)
