@@ -1,21 +1,23 @@
-# Informe de Progreso - Fase 13: Desbloqueo de Transposición 2D en P20
+# Informe de Progreso - Fase 14: Matrices 16x16 y Cifrados de Ruta en P20
 
-## Análisis de Matriz Columnar
-*   Se implementó el descifrador de transposición columnar 2D manejando correctamente las columnas "largas" y "cortas" para un ancho de 28.
-*   **Rutina de Ruteo MIDI:** Se aplicó el array de Delta Times [0, 18, 1, 19...] bajo múltiples interpretaciones geométricas:
-    1.  Carga Vertical -> Lectura Horizontal.
-    2.  Carga Horizontal -> Lectura Vertical.
-    3.  Uso del array como Mapa de Posición Original vs. Mapa de Destino.
+## Pre-procesamiento de Matriz
+*   Se identificó que la Página 20 (263 runas) requiere la eliminación de 7 caracteres nulos para formar una matriz simétrica de 16x16 (256 runas).
+*   Se generaron tres variantes de matriz 16x16:
+    1.  **Trim First 7:** Eliminación de las primeras 7 runas.
+    2.  **Trim Last 7:** Eliminación de las últimas 7 runas.
+    3.  **Frequency Trim:** Eliminación de las primeras 7 apariciones de la runa 'ᛖ' (E).
 
-## Resultados de la Fase 13
-*   **Alineación Estadística:** Todas las variantes mantienen el IC ideal de 1.7.
-*   **Análisis Léxico:** Ninguna de las combinaciones automáticas con los arrays de audio actuales ha revelado oraciones coherentes en inglés rúnico.
-*   **Conclusión:** La transposición de la Página 20 no es una simple permutación de columnas de ancho 28 basada directamente en los Delta Times MIDI.
+## Cifrados de Ruta (Route Ciphers)
+Se implementaron y ejecutaron los siguientes algoritmos de extracción sobre las matrices simétricas:
+1.  **Spiral Inward:** Lectura en espiral desde las esquinas hacia el centro.
+2.  **Knight's Tour:** Extracción siguiendo la Ruta del Caballo de ajedrez (algoritmo de Warnsdorff).
+3.  **Columnar:** Lectura vertical de la matriz cuadrada.
 
-## Hipótesis Evolucionada
-Dada la ausencia de resultados con permutaciones lineales, es probable que:
-1.  La matriz de transposición sea **cuadrada** (ej. 16x16 o similar) y las 263 runas contengan caracteres nulos o de relleno.
-2.  La clave de transposición sea una **Espiral** o un patrón de **Ruta de Caballo** sobre una rejilla de ancho 28.
+## Hallazgos Técnicos
+*   **Convergencia de IC:** Todas las rutas mantienen un Índice de Coincidencia alto (~1.68 - 1.71), confirmando que la distribución de letras es correcta.
+*   **Estado Semántico:** Aunque el IC es óptimo, las rutas probadas no han revelado palabras legibles contiguas.
+*   **Implicación:** Es posible que la transposición no sea una ruta geométrica simple, sino una permutación basada en una clave externa (ej. audio) aplicada a la matriz 16x16, o que las 7 runas nulas no estén al principio/final sino intercaladas.
 
-## Herramientas Actualizadas
-*   `p20_columnar_2d.py`: Motor de transposición bidimensional con soporte para arrays externos y variantes de carga/lectura.
+## Herramientas Consolidadas
+*   `matrix_preprocessor.py`: Generador de matrices simétricas.
+*   `route_cipher_solver.py`: Motor de extracción por rutas (Spiral/Knight/Columnar).
