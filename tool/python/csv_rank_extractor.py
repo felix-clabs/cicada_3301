@@ -3,50 +3,38 @@ import os
 
 def rank_order(values):
     indexed = list(enumerate(values))
-    # Stable sort
     sorted_v = sorted(indexed, key=lambda x: (x[1], x[0]))
     rank_array = [0] * len(values)
     for rank, (original_idx, value) in enumerate(sorted_v):
         rank_array[original_idx] = rank
     return rank_array
 
-def extract_deep_midi(filepath, count=28):
+def extract_double_transp_keys(filepath):
     if not os.path.exists(filepath):
         return None, None
 
-    delta_times = []
-    control_changes = []
-
+    notes = []
+    deltas = []
     with open(filepath, 'r') as f:
         reader = csv.reader(f)
+        last_t = 0
         for row in reader:
-            if len(row) < 3: continue
+            if len(row) >= 5 and "Note_on_c" in row[2]:
+                t = int(row[1])
+                note = int(row[4])
+                vel = int(row[5])
 
-            # 1. Delta Times (difference between row[1] and previous)
-            # Actually row[1] in this format is usually the absolute time (ticks)
-            # but let's see.
-            timestamp = int(row[1])
+                if len(deltas) < 16:
+                    deltas.append(t - last_t)
+                elif len(notes) < 16:
+                    notes.append(note) # or velocity
 
-            if "Note_on_c" in row[2]:
-                if len(delta_times) < count:
-                    # Use the relative time if possible, or just the absolute timestamp sequence
-                    delta_times.append(timestamp)
+                last_t = t
+                if len(notes) >= 16: break
 
-            if "Control_c" in row[2]: # Control Change events
-                if len(control_changes) < count:
-                    val = int(row[4]) # Value of the CC
-                    control_changes.append(val)
-
-    # Convert absolute timestamps to actual deltas
-    deltas = [delta_times[0]] + [delta_times[i] - delta_times[i-1] for i in range(1, len(delta_times))]
-
-    res_delta = rank_order(deltas) if len(deltas) >= count else None
-    res_cc = rank_order(control_changes) if len(control_changes) >= count else None
-
-    return res_delta, res_cc
+    return rank_order(deltas), rank_order(notes)
 
 if __name__ == "__main__":
-    path = "tool/storage/song.csv"
-    d, c = extract_deep_midi(path)
-    if d: print(f"MIDI Delta Rank: {d}")
-    if c: print(f"MIDI CC Rank: {c}")
+    d, n = extract_double_transp_keys("tool/storage/song.csv")
+    print(f"Col Shuffle (Delta Rank): {d}")
+    print(f"Row Shuffle (Note Rank): {n}")
