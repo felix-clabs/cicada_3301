@@ -1,4 +1,5 @@
 
+import sys
 import rune_tools as rt
 import itertools
 import random
