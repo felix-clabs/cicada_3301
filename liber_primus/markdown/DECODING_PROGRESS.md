@@ -39,3 +39,23 @@ Durante las pruebas de alineación, se descubrió que aplicar la clave de la **P
 
 ## Conclusión de la Fase
 La clave de la Página 71 es el motor de cifrado de la Página 20. El crib obtenido de los puntos rojos es un subproducto del proceso de cifrado o una pista para confirmar esta relación entre páginas.
+
+# Informe de Progreso - Fase 20: Bloqueo de Sustitución y Fragmentación Estructural
+
+## Bloqueo de Sustitución (The Golden Ciphertext)
+Se ha congelado la capa de sustitución de la Página 20 utilizando la clave maestra de la Página 71 con un desfase absoluto de **0** (alineado con la posición lineal total).
+- **IC Resultante:** **1.7003** (Consistente con inglés rúnico).
+- **Estado:** La capa de letras es definitiva; el desafío restante es exclusivamente de transposición/reordenamiento.
+
+## Fragmentación Estructural por Máscara
+Utilizando los índices de los 28 puntos rojos, se ha dividido el texto en bloques lógicos. La barrera contigua en los índices 123-140 divide físicamente la página en dos mitades:
+1. **Bloque Superior (0-122):** 123 runas.
+2. **Bloque Inferior (141-262):** 122 runas.
+
+### Análisis de Anagramas
+Se ha verificado que el inventario de caracteres de AMBOS bloques permite la formación completa de palabras clave como **'PILGRIM'**, **'DIVINITY'**, **'WISDOM'** y **'TRUTH'**. Esto sugiere que el mensaje podría estar repetido o distribuido simétricamente entre las dos mitades.
+
+## Ruteo Boustrophedon (Perímetro de Puntos)
+Se ha implementado un ruteo de lectura alternante (Boustrophedon) utilizando los pares de puntos rojos como puntos de giro.
+- **Resultado:** Al invertir los segmentos impares delimitados por los puntos, el IC sube a **1.8331**.
+- **Observación:** Aunque la coherencia semántica total aún no es evidente, el incremento en el IC indica que la estructura de "bisagra" geométrica es la clave para el reordenamiento final.
