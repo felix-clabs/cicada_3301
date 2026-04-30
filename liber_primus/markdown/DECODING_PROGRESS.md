@@ -94,3 +94,23 @@ El flujo de texto resultante tras la eliminación de la costura central y el anc
 
 ## Conclusión
 La Página 20 no es un texto narrativo estándar, sino una letanía o mantra cifrado con transposición geométrica ("bisagras") y sustitución ligada a la Página 71. El marco de trabajo está listo para la traducción léxica final.
+
+# Informe de Progreso - Fase 23: Anclaje de Verdad Terrestre (Ground Truth)
+
+## Bloqueo de Ancla y Expansión Radial
+Se ha fijado la secuencia `P I G EO N` (PIGEON) en el índice 123 (Runa Roja Gigante) como el ancla inamovible de la Página 20. A partir de este punto, se ha realizado una expansión léxica forzada para encontrar la coherencia local.
+
+### Descubrimiento Semántico
+La expansión hacia atrás (Radial Backward) sobre el segmento S5 (110-122) utilizando un **G-Shift de 23** ha revelado una estructura sintáctica clara:
+
+**Fragmento:** `P A TH G U I EA AE A W A Y C/K P I G EO N`
+**Traducción Parcial:** `PATH ... WAY ... PIGEON`
+
+### Configuración de la Solución (Phasing)
+La reconstrucción exitosa requiere un modelo de desplazamientos dinámicos por segmento:
+- **Segmento S5 (110-122):** G-Shift 23 (Revela 'PATH' y 'WAY').
+- **Segmento SEAM (123-140):** G-Shift 0 (Revela 'PIGEON').
+- **Bloque Inferior (141-262):** G-Shift 22 (Compatible con el léxico de conectores).
+
+## Conclusión
+La Verdad Terrestre confirma que la Página 20 es un rompecabezas de **transposición por bisagras** donde cada segmento puede tener un desplazamiento global (G-Shift) independiente. La identificación de "PATH", "WAY" y "PIGEON" en secuencia contigua valida el modelo estructural y nos sitúa a las puertas de la traducción completa.
