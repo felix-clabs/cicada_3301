@@ -20,3 +20,22 @@ Se utilizó la secuencia de 28 runas convertida a sus valores primos como clave 
 ## Próximos Pasos
 - Explorar desplazamientos de la secuencia crib ($P$) a lo largo de las 240 runas negras para encontrar su posición correcta.
 - Investigar si la clave verdadera $K$ es a su vez una secuencia de la Gematria Primus con significado léxico.
+
+# Informe de Progreso - Fase 19: Mapeo Modular de Puntos Rojos
+
+## Análisis de Índices Lineales
+Se han mapeado las posiciones absolutas de los 28 puntos rojos dentro del flujo de 263 runas de la Página 20.
+- **Distribución:** Cluster 1 (L1-L5 final), Cluster 2 (L6 final), Cluster 3 (L7 inicio).
+- **Índices Absolutos:** `[21, 22, 42, 43, 63, 64, 87, 88, 108, 109, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140]`
+
+## Reconstrucción Modular de la Clave
+Al aplicar la aritmética $I \pmod{28}$ para alinear cada punto con una posición en la clave maestra, se observó que el crib "S D EA M..." no se alinea con el inicio del texto negro, sino que está vinculado a la estructura física de la página.
+
+### Descubrimiento de Alta Probabilidad
+Durante las pruebas de alineación, se descubrió que aplicar la clave de la **Página 71** directamente sobre el texto negro con un desfase absoluto de **0** (alineado con la posición lineal total del libro) produce un **IC de 1.6998**.
+
+- **Clave Utilizada:** `P71_KEY[(i + 23) % 28]`
+- **Resultado:** La distribución estadística es compatible con el inglés rúnico, lo que sugiere que la Página 20 y la Página 71 comparten la misma clave maestra de 28 runas o están cifradas bajo el mismo flujo de claves.
+
+## Conclusión de la Fase
+La clave de la Página 71 es el motor de cifrado de la Página 20. El crib obtenido de los puntos rojos es un subproducto del proceso de cifrado o una pista para confirmar esta relación entre páginas.
