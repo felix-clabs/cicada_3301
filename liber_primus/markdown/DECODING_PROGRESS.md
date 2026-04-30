@@ -1,21 +1,22 @@
-# Informe de Progreso - Fase 15: Nulos Intercalados y Transposición Doble en P20
+# Informe de Progreso - Fase 18: Ataque KPA y Autokey en P20
 
-## Poda Inteligente de Nulos (Smart Null Stripping)
-Se han desarrollado técnicas para reducir las 263 runas de la P20 a una matriz simétrica de 256, buscando desalineamientos internos:
-1.  **Filtro de Final de Línea:** Eliminación de la última runa de las primeras 7 líneas de la P20.
-    *   *Resultado:* IC cae a 0.99 (desalinea la sustitución).
-2.  **Filtro Fibonacci:** Eliminación de runas en posiciones correspondientes a la secuencia de Fibonacci.
-    *   *Resultado:* IC se mantiene en **1.7192**, confirmando que la sustitución base es robusta a este tipo de poda puntual.
+## Resumen del Descubrimiento de la Clave
+Se ha confirmado que la Página 20 posee un periodo rúnico de **28**, con un IC periódico de **1.7180**. La secuencia de 28 runas obtenida mediante el mapeo de puntos rojos y el descifrado con la P71 ("S D EA M C W L I Y...") ha sido identificada como una pieza fundamental del rompecabezas.
 
-## Transposición Doble (Audio-Keyed)
-Se implementó un motor de transposición doble que opera sobre la matriz 16x16:
-*   **Clave de Columnas:** Derivada de los Delta Times del archivo MIDI.
-*   **Clave de Filas:** Derivada de los valores de las Notas (Rank Order) del archivo MIDI.
-*   **Observación:** La transposición doble aplicada sobre la poda Fibonacci mantiene la integridad estadística (IC 1.7), pero el texto semántico sigue oculto tras el reordenamiento.
+## Rutina 1: Ataque de Texto en Claro Conocido (KPA)
+Se ha procedido a realizar ingeniería inversa de la clave matemática asumiendo que la secuencia extraída ($P$) es el texto en claro del primer bloque de 28 runas negras ($C$).
+- **Clave Derivada (C - P):** `[20, 0, 8, 5, 13, 8, 15, 11, 3, 12, 0, 15, 11, 13, 5, 28, 6, 12, 8, 10, 8, 20, 7, 10, 0, 8, 15, 12]`
+- **Análisis:** La aplicación de esta clave sobre el resto de la página no produjo un IC significativamente alto (~1.04), lo que sugiere que el crib no corresponde a la posición inicial o que el cifrado no es Vigenere puro.
 
-## Estado de la Investigación
-La Page 20 resiste la transposición lineal y doble basada en metadatos MIDI. El hecho de que la poda Fibonacci mantenga un IC alto sugiere que los caracteres "nulos" podrían estar siguiendo una progresión matemática, pero su eliminación no basta para alinear el texto horizontalmente.
+## Rutina 2: Pruebas de Autoclave (Autokey)
+Se evaluaron dos variantes de Autokey utilizando la secuencia de 28 runas como "Primer":
+1.  **Plaintext Autokey:** La clave para cada bloque es el texto en claro del bloque anterior. (IC: 1.0455)
+2.  **Ciphertext Autokey:** La clave para cada bloque es el texto cifrado del bloque anterior. (IC: 0.9980)
 
-## Herramientas Consolidadas
-*   `matrix_preprocessor.py`: Ahora incluye filtros de poda selectiva (Fibonacci, Líneas).
-*   `double_transposition_solver.py`: Motor de reordenamiento matricial por filas y columnas independientes.
+## Rutina 3: Desplazamiento Primario Dinámico (Prime G-Shift)
+Se utilizó la secuencia de 28 runas convertida a sus valores primos como clave de desplazamiento.
+- **Resultado:** IC 1.0526. Aunque bajo, es ligeramente superior al IC base, lo que justifica seguir explorando transformaciones basadas en primos.
+
+## Próximos Pasos
+- Explorar desplazamientos de la secuencia crib ($P$) a lo largo de las 240 runas negras para encontrar su posición correcta.
+- Investigar si la clave verdadera $K$ es a su vez una secuencia de la Gematria Primus con significado léxico.
