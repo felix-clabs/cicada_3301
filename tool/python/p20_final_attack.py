@@ -8,35 +8,37 @@ def get_golden():
     indices = [rt.RUNE_TO_INDEX[r] for r in runes]
     return [(idx - P71_KEY[i % 28]) % 29 for i, idx in enumerate(indices)]
 
-def solve_full_mantra():
+def routine_p26_final():
     golden = get_golden()
 
-    # Gear Table derived from poly-shift lexical analysis
-    gears = [
-        (0, 21, 8),   # Block 0: 'O I H NG T EO NG M...'
-        (23, 42, 22), # Block 1: 'TH AE OE AE T F G U EA...'
-        (44, 63, 8),  # Block 2: 'EA J J C OE D EA N...'
-        (65, 87, 6),  # Block 3: 'EO D L EO T A P X X...'
-        (89, 108, 2), # Block 4: 'IA N TH O EO J L U Y...'
-        (110, 123, 23),# Block 5: 'P A TH G U I EA AE A W A Y C'
-        (123, 141, 0), # Seam:    'P I G EO N EA Y EO L P J F T H C M O OE'
-        (141, 263, 22) # Lower:   'H H S B AE X I P L W T A AE U AE H R EO O...'
-    ]
+    # 1. Anchors
+    red_anchor = "O SHADOW THE"
+    pigeon_anchor = "P I G EO N"
 
-    print("--- [FASE 24: FINAL POLY-SHIFT UNLOCK] ---")
-    print(f"{'BLOCK':<6} | {'G-SHIFT':<7} | {'TEXTO EN CLARO (SEGMENTO)'}")
-    print("-" * 60)
+    # 2. Lower Block Expansion
+    # G-Shift 6 on index 141-262 (Lower block)
+    lower_indices = [(idx - 6) % 29 for idx in golden[141:263]]
+    lower_text = rt.translate_to_latin([rt.INDEX_TO_RUNE[idx] for idx in lower_indices])
 
-    full_mantra = []
-    for i, (start, end, g) in enumerate(gears):
-        block = golden[start:end]
-        shifted = [(idx - g) % 29 for idx in block]
-        text = rt.translate_to_latin([rt.INDEX_TO_RUNE[idx] for idx in shifted])
-        print(f"{i:5d}  | {g:7d} | {text}")
-        full_mantra.append(text)
+    # 3. Upper Block Bridge
+    # Segment S5 (110-122) G-Shift 23 (PATH/WAY)
+    s5_indices = [(idx - 23) % 29 for idx in golden[110:123]]
+    s5_text = rt.translate_to_latin([rt.INDEX_TO_RUNE[idx] for idx in s5_indices])
 
-    print("\n[MANTRA REENSAMBLADO COMPLETO]")
-    print(" ".join(full_mantra))
+    # Seam (123-140) G-Shift 0
+    seam_indices = [(idx - 0) % 29 for idx in golden[123:141]]
+    seam_text = rt.translate_to_latin([rt.INDEX_TO_RUNE[idx] for idx in seam_indices])
+
+    print("--- [FASE 26: PIGEON EXPANSION & MACRO-GEOMETRY] ---")
+    print(f"BYPASS RED: {red_anchor}")
+    print(f"RECONSTRUCTED BRIDGE: {s5_text} {seam_text}")
+    print(f"\n[ORACIÓN DETECTADA - BLOQUE INFERIOR (G=6)]")
+    print(f"P I G EO N ... {lower_text[:200]}")
+
+    print("\nTABLA DE ENGRANAJES (DYNAMIC G-SHIFT):")
+    print("- SEG 5 (110-122): G=23")
+    print("- SEAM  (123-140): G=0")
+    print("- LOWER (141-262): G=6")
 
 if __name__ == "__main__":
-    solve_full_mantra()
+    routine_p26_final()
