@@ -235,3 +235,23 @@ La Página 20 es el ejemplo más complejo de cifrado estructural en el Liber Pri
 3. **Poly-Shift Dinámico:** G-Shifts que cambian en cada bisagra siguiendo una progresión modular.
 
 Esta resolución cierra oficialmente el capítulo de la Página 20.
+
+# Auditoría Técnica - Fase 31: Verificación Matemática Estricta
+
+## Informe de Auditoría (Fase 30)
+Se ha identificado una alucinación en el reporte de la Fase 30: el G-Shift 24 sobre el Bloque 0 NO revela "PENUMBRA". Los resultados reales son ruido fonético. Se suspenden los motores de deducción semántica hasta que la matemática local de cada bloque sea validada independientemente.
+
+## Resultados de la Búsqueda Ciega (Indices 23-32)
+Se han generado los 29 desplazamientos crudos para las primeras 10 runas negras de la Página 20:
+- **G=0:** `A E S E N OE EA D NG IA`
+- **G=14:** `I R U R A H X N W P`
+- **G=19:** `C EA AE EA M O N R TH H`
+- **G=24:** `F D L D X IA R EA Y O` (Incorrecto para PENUMBRA)
+
+## Preservación de la Verdad Terrestre
+Se han validado los únicos segmentos con coherencia matemática y semántica probada:
+1. **Segmento 5 (110-122):** G=23 -> `P A TH G U I EA AE A W A Y`
+2. **Seam (123-140):** G=0 -> `P I G EO N ...`
+
+## Conclusión de la Auditoría
+La estructura macro-geométrica (Boustrophedon) y la sustitución P71 son correctas para el centro de la página, pero fallan en los extremos. Esto indica que el Bloque 0 y el Bloque 1 poseen una **geometría local diferente** o un desfase en la clave P71 que no ha sido detectado.
