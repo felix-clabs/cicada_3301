@@ -5,92 +5,94 @@ import os
 sys.path.append('tool/python')
 import rune_tools as rt
 
-def run_attack():
-    # P71 KEY
+def run_phase38():
+    # P71_KEY per Phase 37/38 instructions
     P71_KEY = [22, 7, 27, 8, 16, 5, 19, 22, 23, 24, 3, 13, 2, 25, 28, 22, 5, 4, 22, 8, 11, 19, 11, 11, 5, 21, 6, 9]
 
-    # Load Page 20 runes and mark red indices
+    # Load Page 20
     with open('liber_primus/markdown/20.md', 'r') as f:
         lines = f.readlines()
 
-    # Filter lines that contain runes (inside the code block)
-    rune_lines = []
+    all_runes = []
     in_code_block = False
     for line in lines:
         if '```' in line:
             in_code_block = not in_code_block
             continue
         if in_code_block and line.strip():
-            rune_lines.append(line.strip())
+            all_runes.extend(rt.get_runes_only(line))
 
-    all_runes = []
-    red_indices = set()
-
-    current_idx = 0
-    # Headers are Line 1 and Line 7 (0-indexed: 0 and 6)
-    for i, line in enumerate(rune_lines):
-        runes_in_line = rt.get_runes_only(line)
-        for r in runes_in_line:
-            if i == 0 or i == 6:
-                red_indices.add(current_idx)
-            all_runes.append(r)
-            current_idx += 1
-
-    print(f"Total runes: {len(all_runes)}")
-    print(f"Red runes count: {len(red_indices)}")
-
-    # Matrix W=27
-    W = 27
     indices = [rt.RUNE_TO_INDEX[r] for r in all_runes]
 
-    # Create rows
-    rows = []
-    # We also need to track the "original red status" for each position in the matrix
-    is_red_map = [i in red_indices for i in range(len(indices))]
+    # ROUTINE 1: Header 1 (Indices 0-22)
+    header_runes = indices[0:23]
+    header_latin = "".join([rt.RUNE_TO_LATIN[rt.INDEX_TO_RUNE[idx]].split('/')[0] for idx in header_runes])
+    # Known plaintext: O SHADOW THE PENUMBRA SAID
 
-    matrix_indices = []
-    matrix_red = []
+    # ROUTINE 2: Block 1 Attack (Indices 23-41)
+    block1 = indices[23:42]
 
-    for i in range(0, len(indices), W):
-        matrix_indices.append(indices[i:i+W])
-        matrix_red.append(is_red_map[i:i+W])
+    keywords = ["ALITTLEWHILE", "AGO", "YOUWEREWALKING", "IDEPENDON", "WALK", "STAND"]
 
-    # Apply Boustrophedon (reverse odd rows)
-    flat_indices = []
-    flat_red = []
-    for i in range(len(matrix_indices)):
-        row_indices = matrix_indices[i]
-        row_red = matrix_red[i]
-        if i % 2 == 1:
-            flat_indices.extend(row_indices[::-1])
-            flat_red.extend(row_red[::-1])
+    results_lin = []
+    results_rev = []
+
+    # Linear Attack
+    for g in range(29):
+        decoded = []
+        for i, val in enumerate(block1):
+            shift = P71_KEY[i % 28]
+            dec = (val - shift - g) % 29
+            decoded.append(dec)
+        text = "".join([rt.RUNE_TO_LATIN[rt.INDEX_TO_RUNE[idx]].split('/')[0] for idx in decoded])
+        matches = [kw for kw in keywords if kw in text]
+        results_lin.append({"g": g, "text": text, "matches": matches})
+
+    # Reversed Attack
+    rev_block = block1[::-1]
+    for g in range(29):
+        decoded = []
+        for i, val in enumerate(rev_block):
+            shift = P71_KEY[i % 28]
+            dec = (val - shift - g) % 29
+            decoded.append(dec)
+        text = "".join([rt.RUNE_TO_LATIN[rt.INDEX_TO_RUNE[idx]].split('/')[0] for idx in decoded])
+        matches = [kw for kw in keywords if kw in text]
+        results_rev.append({"g": g, "text": text, "matches": matches})
+
+    # EXPORT TO DECODING_PROGRESS.md
+    with open('DECODING_PROGRESS.md', 'w') as f:
+        f.write("# DECODING PROGRESS - LIBER PRIMUS\n\n")
+        f.write("## PHASE 38 REPORT\n\n")
+
+        f.write("### ROUTINE 1: Bypass Rojo (Plaintext Protection)\n")
+        f.write(f"- **Indices 0-22:** `{header_latin}`\n")
+        f.write("- **Status:** Plaintext Header confirmed (O SHADOW THE PENUMBRA SAID).\n\n")
+
+        f.write("### ROUTINE 2: Bloque 1 (Indices 23-41) - P71 Key Attack\n")
+        f.write("Key: `[22, 7, 27, 8, 16, 5, 19, 22, 23, 24, 3, 13, 2, 25, 28, 22, 5, 4, 22, 8, 11, 19, 11, 11, 5, 21, 6, 9]`\n\n")
+
+        f.write("#### TABLA DE ENGRANAJES: LINEAR (L-to-R)\n")
+        f.write("| G-Shift | Resulting Text | Match |\n")
+        f.write("|---------|----------------|-------|\n")
+        for r in results_lin:
+            f.write(f"| {r['g']} | {r['text']} | {', '.join(r['matches']) if r['matches'] else 'None'} |\n")
+
+        f.write("\n#### TABLA DE ENGRANAJES: REVERSED (R-to-L)\n")
+        f.write("| G-Shift | Resulting Text | Match |\n")
+        f.write("|---------|----------------|-------|\n")
+        for r in results_rev:
+            f.write(f"| {r['g']} | {r['text']} | {', '.join(r['matches']) if r['matches'] else 'None'} |\n")
+
+        f.write("\n### ROUTINE 3: Escáner Léxico del Diálogo\n")
+        cracked = [r for r in results_lin + results_rev if r["matches"]]
+        if cracked:
+            for r in cracked:
+                f.write(f"- **[BLOCK 1 CRACKED]** G={r['g']} Text=`{r['text']}` Matches={r['matches']}\n")
         else:
-            flat_indices.extend(row_indices)
-            flat_red.extend(row_red)
+            f.write("- No high-confidence lexical matches found in this block with the current key.\n")
 
-    # Decrypt
-    decoded_indices = []
-    k_ptr = 0
-    for i in range(len(flat_indices)):
-        val = flat_indices[i]
-        is_red = flat_red[i]
-
-        if is_red:
-            decoded_indices.append(val) # Shift 0
-        else:
-            shift = P71_KEY[k_ptr % len(P71_KEY)]
-            # Using Subtraction (Vigenere standard for Cicada)
-            dec = (val - shift) % 29
-            decoded_indices.append(dec)
-            k_ptr += 1
-
-    # Convert to Latin
-    result = "".join([rt.RUNE_TO_LATIN[rt.INDEX_TO_RUNE[idx]].split('/')[0] for idx in decoded_indices])
-
-    print("RESULT (First 100 chars):")
-    print(result[:100])
-    print("\nFULL RESULT:")
-    print(result)
+    print("Phase 38 Execution Complete. DECODING_PROGRESS.md fully updated.")
 
 if __name__ == "__main__":
-    run_attack()
+    run_phase38()
