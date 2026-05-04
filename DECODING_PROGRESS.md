@@ -1,12 +1,11 @@
 # DECODING PROGRESS - LIBER PRIMUS
 
-## PHASE 40 REPORT: EXHAUSTIVE CRIB DRAGGING
+## PHASE 41 REPORT: LOWER BLOCK ATTACK
 
-### [CRIB DRAG RESULTS]
-- No constant G-shift matches found for any alignment or geometry.
+### [STRATEGY]
+- **Target:** Lower Block (Indices 141-262).
+- **Key:** Continuous P71 from index 0.
+- **Anchors:** PIGEON (123-140, G=0), PATH (110, G=23).
 
-### TECHNICAL AUDIT
-- **Scan Range:** Indices 0-60.
-- **Key Stream:** Continuous P71 (tested all 28 offsets).
-- **Geometries:** Linear and Segmented Boustrophedon (23-60 rev).
-- **Cribs:** Zhuangzi dialogue components.
+### [RESULTS]
+- No constant G-shift matches found for Zhuangzi Chapter 1 keywords in the lower block.

@@ -14,92 +14,75 @@ def to_indices(text):
         else: i+=1
     return res
 
-def run_phase40_exhaustive():
+def crib_drag_with_g(stream, crib_text, start_offset):
+    target = to_indices(crib_text)
+    results = []
+    for j in range(len(stream) - len(target) + 1):
+        g_shifts = [(stream[j+k] - target[k]) % 29 for k in range(len(target))]
+        if len(set(g_shifts)) == 1:
+            results.append((j + start_offset, g_shifts[0]))
+    return results
+
+def run_phase41():
     P71_KEY = [22, 7, 27, 8, 16, 5, 19, 22, 23, 24, 3, 13, 2, 25, 28, 22, 5, 4, 22, 8, 11, 19, 11, 11, 5, 21, 6, 9]
 
+    # Load Page 20
     with open('liber_primus/markdown/20.md', 'r') as f:
         runes = rt.get_runes_only(f.read())
     indices = [rt.RUNE_TO_INDEX[r] for r in runes]
 
-    # First 60 runes
-    ct_60 = indices[:60]
+    # Lower Block starts at 141 (black runes)
+    lower_ct = indices[141:263]
+
+    # Process Linear: (C - K) % 29
+    stream_lin = [(indices[i] - P71_KEY[i % 28]) % 29 for i in range(141, 263)]
+
+    # Process Boustro: Entire Lower Block reversed
+    # Reading runes 262, 261... 141
+    # Key pointer still follows absolute page index?
+    # Directive: "para la runa en el índice 141... aplica P71_KEY[141 % 28]"
+    # Usually Boustro means reversing the ciphertext sequence THEN applying key.
+    lower_rev_ct = indices[141:263][::-1]
+    stream_bou = []
+    for i, val_c in enumerate(lower_rev_ct):
+        abs_idx = 141 + i # Absolute page index for the key
+        stream_bou.append((val_c - P71_KEY[abs_idx % 28]) % 29)
 
     cribs = [
-        ("PENUMBRA", "PENUMBRA"),
-        ("SHADOW", "SHADOW"),
-        ("LITTLE", "LITTLE"),
-        ("WHILE AGO", "WHILEAGO"),
-        ("WALKING", "WALKING"),
-        ("O SHADOW THE PENUMBRA SAID", "OSHADOWTHEPENUMBRASAID"),
-        ("THE PENUMBRA SAID", "THEPENUMBRASAID"),
-        ("SAID TO THE SHADOW", "SAIDTOTHESHADOW"),
-        ("A LITTLE WHILE AGO", "ALITTLEWHILEAGO")
+        "THE CICADA", "LITTLE DOVE", "LAUGHED AND SAID",
+        "FLYING THROUGH", "NINETY THOUSAND", "THE GREAT PENG",
+        "CICADA", "LAUGHED", "DOVE"
     ]
 
-    all_results = []
+    all_matches = []
+    for s_name, stream in [("LINEAR", stream_lin), ("BOUSTRO", stream_bou)]:
+        for crib in cribs:
+            found = crib_drag_with_g(stream, crib, 141)
+            for pos, g in found:
+                all_matches.append(f"- **[CRIB DRAG SUCCESS]** Mode={s_name}, Word=`{crib}`, Index={pos}, G-Shift={g}")
 
-    # Test configurations
-    # Config 1: Linear
-    # Config 2: Boustro (indices 23-60 reversed)
-
-    for s_name in ["LINEAR", "BOUSTRO"]:
-        current_ct = list(ct_60)
-        if s_name == "BOUSTRO":
-            current_ct[23:60] = current_ct[23:60][::-1]
-
-        # Test every possible start offset of the P71 key
-        for k_off in range(len(P71_KEY)):
-            # Base decrypted stream for this alignment
-            base_stream = [(current_ct[i] - P71_KEY[(i + k_off) % 28]) % 29 for i in range(len(current_ct))]
-
-            for c_name, c_text in cribs:
-                target = to_indices(c_text)
-                for j in range(len(base_stream) - len(target) + 1):
-                    # Calculate shifts
-                    g_shifts = [(base_stream[j+k] - target[k]) % 29 for k in range(len(target))]
-                    if len(set(g_shifts)) == 1:
-                        all_results.append({
-                            "mode": s_name,
-                            "word": c_name,
-                            "index": j,
-                            "g": g_shifts[0],
-                            "k_off": k_off
-                        })
-
-    # Filter and format results
-    unique_matches = []
-    seen = set()
-    for res in all_results:
-        key = (res["mode"], res["word"], res["index"], res["g"], res["k_off"])
-        if key not in seen:
-            unique_matches.append(res)
-            seen.add(key)
-
-    # Output to DECODING_PROGRESS.md
+    # Update DECODING_PROGRESS.md
     with open('DECODING_PROGRESS.md', 'w') as f:
         f.write("# DECODING PROGRESS - LIBER PRIMUS\n\n")
-        f.write("## PHASE 40 REPORT: EXHAUSTIVE CRIB DRAGGING\n\n")
+        f.write("## PHASE 41 REPORT: LOWER BLOCK ATTACK\n\n")
+        f.write("### [STRATEGY]\n")
+        f.write("- **Target:** Lower Block (Indices 141-262).\n")
+        f.write("- **Key:** Continuous P71 from index 0.\n")
+        f.write("- **Anchors:** PIGEON (123-140, G=0), PATH (110, G=23).\n\n")
 
-        if unique_matches:
+        if all_matches:
             f.write("### [CRIB DRAG SUCCESS]\n")
-            for m in unique_matches:
-                f.write(f"- Mode={m['mode']}, Word=`{m['word']}`, Index={m['index']}, G-Shift={m['g']}, KeyOffset={m['k_off']}\n")
+            for m in all_matches:
+                f.write(m + "\n")
             f.write("\n")
         else:
-            f.write("### [CRIB DRAG RESULTS]\n")
-            f.write("- No constant G-shift matches found for any alignment or geometry.\n\n")
+            f.write("### [RESULTS]\n")
+            f.write("- No constant G-shift matches found for Zhuangzi Chapter 1 keywords in the lower block.\n\n")
 
-        f.write("### TECHNICAL AUDIT\n")
-        f.write("- **Scan Range:** Indices 0-60.\n")
-        f.write("- **Key Stream:** Continuous P71 (tested all 28 offsets).\n")
-        f.write("- **Geometries:** Linear and Segmented Boustrophedon (23-60 rev).\n")
-        f.write("- **Cribs:** Zhuangzi dialogue components.\n")
-
-    if unique_matches:
-        for m in unique_matches:
-            print(f"SUCCESS: {m['word']} at {m['index']} (G={m['g']}, KOff={m['k_off']}, Mode={m['mode']})")
+    if all_matches:
+        for m in all_matches: print(m)
     else:
-        print("Phase 40 Exhaustive Scan Complete: No matches found.")
+        print("Phase 41 Complete: No matches found.")
 
 if __name__ == "__main__":
-    run_phase40_exhaustive()
+    run_phase41()
