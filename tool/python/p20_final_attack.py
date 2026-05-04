@@ -14,104 +14,92 @@ def to_indices(text):
         else: i+=1
     return res
 
-def run_phase39():
-    # P71 Master Key
+def run_phase40_exhaustive():
     P71_KEY = [22, 7, 27, 8, 16, 5, 19, 22, 23, 24, 3, 13, 2, 25, 28, 22, 5, 4, 22, 8, 11, 19, 11, 11, 5, 21, 6, 9]
 
-    # Load Page 20
     with open('liber_primus/markdown/20.md', 'r') as f:
-        lines = f.readlines()
+        runes = rt.get_runes_only(f.read())
+    indices = [rt.RUNE_TO_INDEX[r] for r in runes]
 
-    all_runes = []
-    in_code_block = False
-    for line in lines:
-        if '```' in line:
-            in_code_block = not in_code_block
-            continue
-        if in_code_block and line.strip():
-            all_runes.extend(rt.get_runes_only(line))
+    # First 60 runes
+    ct_60 = indices[:60]
 
-    indices = [rt.RUNE_TO_INDEX[r] for r in all_runes]
+    cribs = [
+        ("PENUMBRA", "PENUMBRA"),
+        ("SHADOW", "SHADOW"),
+        ("LITTLE", "LITTLE"),
+        ("WHILE AGO", "WHILEAGO"),
+        ("WALKING", "WALKING"),
+        ("O SHADOW THE PENUMBRA SAID", "OSHADOWTHEPENUMBRASAID"),
+        ("THE PENUMBRA SAID", "THEPENUMBRASAID"),
+        ("SAID TO THE SHADOW", "SAIDTOTHESHADOW"),
+        ("A LITTLE WHILE AGO", "ALITTLEWHILEAGO")
+    ]
 
-    # ROUTINE 1: KPA Line 1 (Indices 0-22)
-    ct_red = indices[0:23]
-    pt_target = "O SHADOW THE PENUMBRA SAID"
-    pt_indices = to_indices(pt_target)
+    all_results = []
 
-    print("ROUTINE 1: Ground Truth Alignment Analysis")
-    results_kpa = []
-    for g in range(29):
-        matches = 0
-        decoded = []
-        for i in range(min(len(pt_indices), len(ct_red))):
-            p = (ct_red[i] - P71_KEY[i % 28] - g) % 29
-            decoded.append(p)
-            if p == pt_indices[i]: matches += 1
-        results_kpa.append((g, matches, decoded))
+    # Test configurations
+    # Config 1: Linear
+    # Config 2: Boustro (indices 23-60 reversed)
 
-    best_kpa = max(results_kpa, key=lambda x: x[1])
-    best_g = best_kpa[0]
+    for s_name in ["LINEAR", "BOUSTRO"]:
+        current_ct = list(ct_60)
+        if s_name == "BOUSTRO":
+            current_ct[23:60] = current_ct[23:60][::-1]
 
-    # ROUTINE 2: Restoration of Continuous Flow (Block 1: 23-41)
-    block1_ct = indices[23:42]
-    keywords = ["ALITTLEWHILE", "AGO", "YOUWEREWALKING", "DEPEND", "WALK", "STAND"]
+        # Test every possible start offset of the P71 key
+        for k_off in range(len(P71_KEY)):
+            # Base decrypted stream for this alignment
+            base_stream = [(current_ct[i] - P71_KEY[(i + k_off) % 28]) % 29 for i in range(len(current_ct))]
 
-    res_lin = []
-    res_rev = []
-    for g in range(29):
-        # Linear
-        decoded_lin = []
-        for i in range(23, 42):
-            val_p = (indices[i] - P71_KEY[i % 28] - g) % 29
-            decoded_lin.append(val_p)
-        text_lin = "".join([rt.RUNE_TO_LATIN[rt.INDEX_TO_RUNE[idx]].split('/')[0] for idx in decoded_lin])
-        m_lin = [kw for kw in keywords if kw in text_lin]
-        res_lin.append((g, text_lin, m_lin))
+            for c_name, c_text in cribs:
+                target = to_indices(c_text)
+                for j in range(len(base_stream) - len(target) + 1):
+                    # Calculate shifts
+                    g_shifts = [(base_stream[j+k] - target[k]) % 29 for k in range(len(target))]
+                    if len(set(g_shifts)) == 1:
+                        all_results.append({
+                            "mode": s_name,
+                            "word": c_name,
+                            "index": j,
+                            "g": g_shifts[0],
+                            "k_off": k_off
+                        })
 
-        # Reversed
-        decoded_rev = []
-        rev_block_indices = list(range(23, 42))[::-1]
-        for idx in rev_block_indices:
-            val_p = (indices[idx] - P71_KEY[idx % 28] - g) % 29
-            decoded_rev.append(val_p)
-        text_rev = "".join([rt.RUNE_TO_LATIN[rt.INDEX_TO_RUNE[idx]].split('/')[0] for idx in decoded_rev])
-        m_rev = [kw for kw in keywords if kw in text_rev]
-        res_rev.append((g, text_rev, m_rev))
+    # Filter and format results
+    unique_matches = []
+    seen = set()
+    for res in all_results:
+        key = (res["mode"], res["word"], res["index"], res["g"], res["k_off"])
+        if key not in seen:
+            unique_matches.append(res)
+            seen.add(key)
 
-    # Update DECODING_PROGRESS.md
+    # Output to DECODING_PROGRESS.md
     with open('DECODING_PROGRESS.md', 'w') as f:
         f.write("# DECODING PROGRESS - LIBER PRIMUS\n\n")
-        f.write("## PHASE 39 REPORT\n\n")
+        f.write("## PHASE 40 REPORT: EXHAUSTIVE CRIB DRAGGING\n\n")
 
-        f.write("### ROUTINE 1: Ground Truth Alignment (Line 1 KPA)\n")
-        f.write(f"- **Target Plaintext:** `{pt_target}`\n")
-        f.write(f"- **Best Candidate G-Shift:** `{best_g}`\n")
-        f.write(f"- **Confidence:** {best_kpa[1]}/{len(pt_indices)} raw character matches.\n")
-        f.write("- **Analysis:** While specific matches are low, the continuous flow is now established as the primary model.\n\n")
-
-        f.write("### ROUTINE 2 & 3: Block 1 (Indices 23-41) - Continuous Flow\n")
-        cracked = [r for r in res_lin if r[2]] + [r for r in res_rev if r[2]]
-        if cracked:
-            f.write("#### [BLOCK 1 CRACKED] CANDIDATES\n")
-            for g, t, m in res_lin:
-                if m: f.write(f"- LINEAR G={g} Match={m} -> `{t}`\n")
-            for g, t, m in res_rev:
-                if m: f.write(f"- REVERSED G={g} Match={m} -> `{t}`\n")
+        if unique_matches:
+            f.write("### [CRIB DRAG SUCCESS]\n")
+            for m in unique_matches:
+                f.write(f"- Mode={m['mode']}, Word=`{m['word']}`, Index={m['index']}, G-Shift={m['g']}, KeyOffset={m['k_off']}\n")
             f.write("\n")
         else:
-            f.write("- **Status:** No direct high-confidence matches for keywords in Block 1 using continuous flow.\n\n")
+            f.write("### [CRIB DRAG RESULTS]\n")
+            f.write("- No constant G-shift matches found for any alignment or geometry.\n\n")
 
-        f.write("#### TABLA DE ENGRANAJES: LINEAR (L-to-R)\n")
-        f.write("| G | Result | Match |\n|---|--------|-------|\n")
-        for g, t, m in res_lin:
-            f.write(f"| {g} | {t} | {', '.join(m) if m else 'None'} |\n")
+        f.write("### TECHNICAL AUDIT\n")
+        f.write("- **Scan Range:** Indices 0-60.\n")
+        f.write("- **Key Stream:** Continuous P71 (tested all 28 offsets).\n")
+        f.write("- **Geometries:** Linear and Segmented Boustrophedon (23-60 rev).\n")
+        f.write("- **Cribs:** Zhuangzi dialogue components.\n")
 
-        f.write("\n#### TABLA DE ENGRANAJES: REVERSED (R-to-L)\n")
-        f.write("| G | Result | Match |\n|---|--------|-------|\n")
-        for g, t, m in res_rev:
-            f.write(f"| {g} | {t} | {', '.join(m) if m else 'None'} |\n")
-
-    print(f"Phase 39 Complete. DECODING_PROGRESS.md updated.")
+    if unique_matches:
+        for m in unique_matches:
+            print(f"SUCCESS: {m['word']} at {m['index']} (G={m['g']}, KOff={m['k_off']}, Mode={m['mode']})")
+    else:
+        print("Phase 40 Exhaustive Scan Complete: No matches found.")
 
 if __name__ == "__main__":
-    run_phase39()
+    run_phase40_exhaustive()
