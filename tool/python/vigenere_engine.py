@@ -1,47 +1,39 @@
-import gp_core
+"""
+Vigenere Engine Module
+Supports standard repeating-key Vigenere and Autokey (plaintext as key).
+Modular 29 math for Gematria Primus.
+"""
 
-def vigenere_process(text_indices, key_indices, mode='decrypt'):
-    """
-    Applies Vigenere cipher (modular 29) to a list of indices.
-    mode: 'encrypt' (add) or 'decrypt' (subtract).
-    """
-    result = []
-    key_len = len(key_indices)
-    for i, val in enumerate(text_indices):
-        key_val = key_indices[i % key_len]
-        if mode == 'encrypt':
-            result.append((val + key_val) % 29)
+def vigenere_process(indices, key_indices, decrypt=True, autokey=False):
+    res = []
+    current_key = list(key_indices)
+    for i in range(len(indices)):
+        if autokey:
+            if i < len(key_indices):
+                k = key_indices[i]
+            else:
+                k = res[i - len(key_indices)] if decrypt else indices[i - len(key_indices)]
         else:
-            result.append((val - key_val) % 29)
-    return result
+            k = current_key[i % len(current_key)]
+        if decrypt:
+            val = (indices[i] - k) % 29
+        else:
+            val = (indices[i] + k) % 29
+        res.append(val)
+    return res
 
-def process_page(content, key_indices, mode='decrypt'):
-    """
-    Processes a full page string, preserving non-runic characters.
-    """
-    runes = gp_core.get_runes_from_text(content)
-    rune_indices = [gp_core.rune_to_index(r) for r in runes]
-
-    processed_indices = vigenere_process(rune_indices, key_indices, mode)
-    processed_runes = [gp_core.index_to_rune(i) for i in processed_indices]
-
-    # Reconstruction
-    output = []
-    rune_ptr = 0
-    for char in content:
+def process_text(text, key_indices, decrypt=True, autokey=False):
+    import gp_core
+    runes_only = gp_core.get_runes_from_text(text)
+    input_indices = gp_core.runes_to_indices(runes_only)
+    output_indices = vigenere_process(input_indices, key_indices, decrypt, autokey)
+    output_runes = gp_core.indices_to_runes(output_indices)
+    res = []
+    rune_idx = 0
+    for char in text:
         if char in gp_core.RUNE_TO_INDEX:
-            output.append(processed_runes[rune_ptr])
-            rune_ptr += 1
+            res.append(output_runes[rune_idx])
+            rune_idx += 1
         else:
-            output.append(char)
-
-    return "".join(output)
-
-if __name__ == "__main__":
-    # Quick test
-    text = "ᚠᚢᚦ" # indices 0, 1, 2
-    key = [1, 1, 1]
-    encrypted = vigenere_process([0, 1, 2], key, 'encrypt')
-    print(f"Encrypted indices: {encrypted}") # Should be 1, 2, 3
-    decrypted = vigenere_process(encrypted, key, 'decrypt')
-    print(f"Decrypted indices: {decrypted}") # Should be 0, 1, 2
+            res.append(char)
+    return "".join(res)
